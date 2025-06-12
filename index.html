@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Solar System Simulation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #000;
+            color: #fff;
+            overflow: hidden;
+        }
+
+        #canvas-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #control-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            max-width: 300px;
+            max-height: 80vh;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        #control-panel h2 {
+            color: #ffd700;
+            margin-bottom: 15px;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 12px;
+            color: #ccc;
+        }
+
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .speed-slider {
+            flex: 1;
+            height: 4px;
+            background: #333;
+            border-radius: 2px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .speed-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #ffd700;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .speed-slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: #ffd700;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+
+        .speed-value {
+            min-width: 30px;
+            font-size: 11px;
+            color: #ffd700;
+        }
+
+        .main-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 8px 12px;
+            background: rgba(255, 215, 0, 0.2);
+            border: 1px solid #ffd700;
+            border-radius: 6px;
+            color: #ffd700;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: rgba(255, 215, 0, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .btn.active {
+            background: #ffd700;
+            color: #000;
+        }
+
+        #info-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            max-width: 250px;
+            z-index: 100;
+            opacity: 0;
+            transform: translateX(20px);
+            transition: all 0.3s ease;
+        }
+
+        #info-panel.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        #info-panel h3 {
+            color: #ffd700;
+            margin-bottom: 10px;
+        }
+
+        #info-panel p {
+            font-size: 12px;
+            line-height: 1.4;
+            color: #ccc;
+        }
+
+        .planet-info {
+            margin-bottom: 8px;
+        }
+
+        .planet-info strong {
+            color: #fff;
+        }
+
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 200;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 215, 0, 0.3);
+            border-top: 3px solid #ffd700;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 11px;
+            color: #ccc;
+            max-width: 200px;
+        }
+
+        .instructions h4 {
+            color: #ffd700;
+            margin-bottom: 8px;
+        }
+
+        .instructions ul {
+            list-style: none;
+        }
+
+        .instructions li {
+            margin-bottom: 4px;
+        }
+
+        /* Scrollbar styling */
+        #control-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #control-panel::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+
+        #control-panel::-webkit-scrollbar-thumb {
+            background: rgba(255, 215, 0, 0.5);
+            border-radius: 3px;
+        }
+
+        @media (max-width: 768px) {
+            #control-panel {
+                max-width: 250px;
+                padding: 15px;
+            }
+            
+            #info-panel {
+                max-width: 200px;
+                padding: 15px;
+            }
+            
+            .instructions {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">
+        <div class="spinner"></div>
+        <p>Loading Solar System...</p>
+    </div>
+
+    <div id="canvas-container">
+        <!-- Three.js canvas will be inserted here -->
+    </div>
+
+    <div id="control-panel">
+        <h2>Solar System Controls</h2>
+        
+        <div class="main-controls">
+            <button id="pause-btn" class="btn">Pause</button>
+            <button id="theme-btn" class="btn">Light Mode</button>
+        </div>
+
+        <div class="control-group">
+            <label>Global Speed Multiplier</label>
+            <div class="speed-control">
+                <input type="range" id="global-speed" class="speed-slider" min="0" max="5" step="0.1" value="1">
+                <span class="speed-value">1.0x</span>
+            </div>
+        </div>
+
+        <div id="planet-controls">
+            <!-- Planet controls will be generated here -->
+        </div>
+    </div>
+
+    <div id="info-panel">
+        <h3 id="planet-name">Planet Info</h3>
+        <div id="planet-details">
+            <p>Hover over a planet to see details</p>
+        </div>
+    </div>
+
+    <div class="instructions">
+        <h4>Controls:</h4>
+        <ul>
+            <li>• Mouse: Rotate camera</li>
+            <li>• Scroll: Zoom in/out</li>
+            <li>• Click planet: Focus view</li>
+            <li>• Drag sliders: Adjust speeds</li>
+        </ul>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="src/js/main.js"></script>
+</body>
+</html>
